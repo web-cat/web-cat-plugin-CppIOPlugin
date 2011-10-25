@@ -2,10 +2,7 @@
 #=============================================================================
 #   @(#)$Id$
 #-----------------------------------------------------------------------------
-#   Web-CAT Curator: execution script for C++ I/O testing submissions
-#
-#   usage:
-#       execute.pl <properties-file>
+#   Web-CAT Grader: plug-in for C++ I/O testing submissions
 #=============================================================================
 # Installation Notes:
 
@@ -55,7 +52,7 @@ our $working_dir  = $cfg->getProperty( 'workingDir'     );
 our $timeout	  = $cfg->getProperty( 'timeout', 30    );
 # The values coming through don't match up with assignment settings.
 # E.g., "15" comes through as "430". So this is a 'temporary' patch.
-# And I can't access the timeoutInternalPadding, etc. from config.plist, so 
+# And I can't access the timeoutInternalPadding, etc. from config.plist, so
 # have to guess as to the adjustment to undo the padding and multiplying done
 # by the subsystem..
 if ( $timeout >  100 ) { $timeout = ($timeout - 400) / 2; }
@@ -102,9 +99,9 @@ our $submissionTimestamp     = $cfg->getProperty( 'submissionTimestamp', 0 );
 #   Adjust time from milliseconds to seconds
     $dueDateTimestamp    /= 1000;
     $submissionTimestamp /= 1000;
-#   Within hints blackout period if 
+#   Within hints blackout period if
 #   (1) hideHintsWithin != 0 (covered by multiplication below), and
-#   (2) submission time >= (due date - hideHintsWithin time) 
+#   (2) submission time >= (due date - hideHintsWithin time)
 #   else will provide hints if requested.
 #   The reason for the extra variable is to be able to generate a message
 #   to the effect that extra help would have been available if the student
@@ -190,24 +187,24 @@ debug                   = $debug
 #-----------------------------
 #   C/C++ compiler to use.
 #   Std linux: Improve portability later. Do some minimal testing.
-#   FIXME: Set a default, then check environment for C/C++ location. 
+#   FIXME: Set a default, then check environment for C/C++ location.
 #   Die if can't find an executable.
 #  If CPP_COMPILER is set and meaningful, switch to use it.
 #  Todo ...
 #-----------------------------
-my $c_compiler  = "/usr/bin/gcc";
-my $cpp_compiler  = "/usr/bin/g++";
-if ( $acceptCSource && ( ! -x $c_compiler )) {
-    die "$c_compiler doesn't exist";
-}
-if ( $acceptCPPSource && ( ! -x $cpp_compiler )) {
-    die "$cpp_compiler doesn't exist";
-}
+my $c_compiler   = "gcc";       # "/usr/bin/gcc";
+my $cpp_compiler = "g++";       # "/usr/bin/g++";
+#if ( $acceptCSource && ( ! -x $c_compiler )) {
+#    die "$c_compiler doesn't exist";
+#}
+#if ( $acceptCPPSource && ( ! -x $cpp_compiler )) {
+#    die "$cpp_compiler doesn't exist";
+#}
 
 #-----------------------------
 #  Diff program to use.
-my $diff_prog  = "/usr/bin/diff";
--x $diff_prog || die "$diff_prog doesn't exist";
+my $diff_prog = "diff";      # "/usr/bin/diff";
+#-x $diff_prog || die "$diff_prog doesn't exist";
 
 # Set the diff flag. Below is currently set to ignore all white space differences.
 my $diff_flags = "";
@@ -227,7 +224,7 @@ if( $ignoreCaseDiff ) {
 #=============================================================================
 
 ## Should be renamed to "generateFullScriptPath"?
-## 
+##
 sub findScriptPath
 {
     my $subpath = shift;
@@ -379,9 +376,9 @@ sub reportError {
     my $rpt_relative_path = shift;
     my $rpt_title         = shift;
     my $rpt_message       = shift;
-    
+
     my $errorFeedbackGenerator = new Web_CAT::FeedbackGenerator( $rpt_absolute_path );
-    $errorFeedbackGenerator->startFeedbackSection( 
+    $errorFeedbackGenerator->startFeedbackSection(
              $rpt_title,
              ++$expSectionId,
              0 );
@@ -401,7 +398,7 @@ sub reportError {
     $errorFeedbackGenerator->endFeedbackSection;
 
     # Close down this report
-    $errorFeedbackGenerator->close; 
+    $errorFeedbackGenerator->close;
     $reportCount++;
     $cfg->setProperty( "report${reportCount}.file",     $rpt_relative_path );
     $cfg->setProperty( "report${reportCount}.mimeType", "text/html"        );
@@ -548,7 +545,7 @@ sub run_test {
 	print "$cmdline\n";
 
 	# Exec program and collect output
-	( $exitcode, $timeout_status ) = 
+	( $exitcode, $timeout_status ) =
 	     Proc::Background::timeout_system( $timeout, $cmdline );
 	$exitcode = $exitcode>>8;    # Std UNIX exit code extraction.
 	die "Exec died: $cmdline" if ( $exitcode != 0 );
@@ -556,7 +553,7 @@ sub run_test {
 
 	# Make sure executable got created as and where expected.
 	# Currently, if something blew up, we should 'die' above. This is more
-	# here as a discussion reminder to discuss which is best: 
+	# here as a discussion reminder to discuss which is best:
 	# (1) die, thus sending email to notify the instructor (hopefully read),
 	# (2) not die and issue and error message that a student will see and
 	#     -- it is hoped -- complain to someone about.
@@ -573,7 +570,7 @@ sub run_test {
     # Hack: fixme: needs to be fixed to deal with multiple source files.
     #else {
     #    print "$instr_files/instructor.exe (mtime=" . scalar $exe_info->mtime
-    #	    . ") is newer than $instructor_src (mtime=" . scalar $src_info->mtime 
+    #	    . ") is newer than $instructor_src (mtime=" . scalar $src_info->mtime
     #	    . "). No need to compile.\n";
     #}
 
@@ -586,7 +583,7 @@ sub run_test {
 	. "$stu_compiler -o $working_dir/student.exe $student_src 2>>'$outfile'";
 print $cmdline . "\n";
     # Exec program and collect output
-    ( $exitcode, $timeout_status ) = 
+    ( $exitcode, $timeout_status ) =
 	 Proc::Background::timeout_system( $timeout, $cmdline );
     $exitcode = $exitcode>>8;    # Std UNIX exit code extraction.
 
@@ -661,18 +658,18 @@ print $cmdline . "\n";
 	$cmdline = "$Web_CAT::Utilities::SHELL"
 	    . "'$instr_files'/instructor.exe < '$input_file' > '$instructor_output_file' 2>>'$outfile'";
 	# Exec program and collect output
-	( $exitcode, $timeout_status ) = 
+	( $exitcode, $timeout_status ) =
 	     Proc::Background::timeout_system( $timeout, $cmdline );
 	$exitcode = $exitcode>>8;    # Std UNIX exit code extraction.
 	die "Exec died: $cmdline" if ( $exitcode != 0 );
 	# Should we do this, or issue a 'die' instead.
 	# Which receives more of the right type of attention?
-	if( $timeout_status != 0 ) { 
-	    $timeout_occurred = 1; 
+	if( $timeout_status != 0 ) {
+	    $timeout_occurred = 1;
 	    $can_proceed      = 0;
-	    reportError( $instr_error_rpt, $instr_error_rpt_relative, 
+	    reportError( $instr_error_rpt, $instr_error_rpt_relative,
 	         "Test Error Report",
-		 "Your instructor's program '" . basename($instructor_src) 
+		 "Your instructor's program '" . basename($instructor_src)
 		 . "' has apparently entered an infinite loop.<br>\n"
 		 . "Please notify your instructor of the problem.\n" );
 	    # And penalize students heavily for the problem? Another discussion point.
@@ -686,19 +683,19 @@ print $cmdline . "\n";
 	$cmdline = "$Web_CAT::Utilities::SHELL"
 	    . "$working_dir/student.exe < $input_file > $student_output_file 2>>$outfile";
 	# Exec program and collect output
-	( $exitcode, $timeout_status ) = 
+	( $exitcode, $timeout_status ) =
 	     Proc::Background::timeout_system( $timeout, $cmdline );
 	$exitcode = $exitcode>>8;    # Std UNIX exit code extraction.
 	die "Exec died: $cmdline" if ( $exitcode != 0 );
-	if( $timeout_status != 0 ) { 
+	if( $timeout_status != 0 ) {
 	    $timeout_occurred = 1;
 	    $can_proceed = 0;
-	    reportError( $instr_error_rpt, $instr_error_rpt_relative, 
+	    reportError( $instr_error_rpt, $instr_error_rpt_relative,
 	         "Test Error Report",
 		 "Your program '" . basename($student_src) . "' has apparently "
 		 . "entered an infinite loop.<br>\n"
 		 . "Please fix your program to avoid this problem with future submissions.\n" );
-	    # And penalize students heavily for the problem? 
+	    # And penalize students heavily for the problem?
 	    # If so, uncomment line below.
 	    return (0, 0, 1);
 	}
@@ -714,11 +711,11 @@ print $cmdline . "\n";
 	    . ">'$student_output_file.dif' 2>>$outfile";
 	print RESULT_REPORT "$cmdline\n";
 	# Exec program and collect output
-	( $exitcode, $timeout_status ) = 
+	( $exitcode, $timeout_status ) =
 	     Proc::Background::timeout_system( $timeout, $cmdline );
 	$exitcode = $exitcode>>8;    # Std UNIX exit code extraction.
-	if( $timeout_status != 0 ) { 
-	    $timeout_occurred = 1; 
+	if( $timeout_status != 0 ) {
+	    $timeout_occurred = 1;
 	    $can_proceed = 0;
 	    print "Thinks a timeout happened while running diff. Highly unlikely!\n";
 	}
@@ -728,7 +725,7 @@ print $cmdline . "\n";
 
 	# Deal with various test failure possibilities and count failures.
 	if ( $exitcode < 0 || ! -e $student_output_file ) {
-	    die "Exec died: $cmdline" 
+	    die "Exec died: $cmdline"
 	}
 	elsif ( -z "$student_output_file.dif" ) {
 	    print RESULT_REPORT "\n.\nPASS: $instructor_output_file and $student_output_file match.\n";
@@ -737,7 +734,7 @@ print $cmdline . "\n";
 	    $failures++;
 	    if( $showHints && (! $noMoreHints )) {
 		if( $hintsBlackout ) {
-			$hintMessages .= 
+			$hintMessages .=
 			     "<p>Your instructor has choosen to cut off extra feedback "
 			     . "$hideHintsWithin day(s) before the due date. Consequently, "
 			     . "no hints will be given.</p>\n";
@@ -761,7 +758,7 @@ print $cmdline . "\n";
 	    . "('$student_output_file')\n";
 
 	if ( $timeout_occurred )
-	{   
+	{
 	    #if ( $@ )
 	    #{
 		# timed out
@@ -772,7 +769,7 @@ print $cmdline . "\n";
 
 		my $timeOutFeedbackGenerator = new Web_CAT::FeedbackGenerator( $timeout_log );
 		$timeOutFeedbackGenerator->startFeedbackSection( "Errors During Testing" );
-		$timeOutFeedbackGenerator->print( 
+		$timeOutFeedbackGenerator->print(
 		      "<p><font color=\"#ee00bb\">Testing your solution exceeded the allowable time"
 		    . "limit for this assignment.</font></p>\n"
 		    . "<p>Most frequently, this is the result of <b>infinite recursion</b>--when "
@@ -818,7 +815,7 @@ print "\$succeeded = $succeeded, \$num_cases = $num_cases, \$failures = $failure
     if ( $testsExecuted == 0 )
     {
 	# This used to say "no tests submitted". That might be true, but
-	# it is more likely that the student messed up. 
+	# it is more likely that the student messed up.
 	# Be vague and sort of blame them.  :-)
         $sectionTitle .=
             "<b class=\"warn\">(No Testable Files Found!)</b>";
@@ -829,9 +826,9 @@ print "\$succeeded = $succeeded, \$num_cases = $num_cases, \$failures = $failure
     }
     else
     {
-        my $studentCasesPercent = 
-	        $allTestsPass ? 
-		100 : 
+        my $studentCasesPercent =
+	        $allTestsPass ?
+		100 :
 		sprintf( "%.1f", $eval_score * 100 );
         $sectionTitle .= "<b class=\"warn\">($studentCasesPercent%)</b>";
     }
@@ -840,10 +837,10 @@ print "\$succeeded = $succeeded, \$num_cases = $num_cases, \$failures = $failure
     # Fire up the feedback generator
     my $feedbackGenerator = new Web_CAT::FeedbackGenerator( $resultReport );
 
-    # startFeedbackSection( title, report number, 
+    # startFeedbackSection( title, report number,
     #     initially collapsed (1) or expanded (0) )
     #     Expand if there are errors.
-    $feedbackGenerator->startFeedbackSection( 
+    $feedbackGenerator->startFeedbackSection(
              $sectionTitle,
              ++$expSectionId,
 	     ( $failures + $errors > 0 ) ? 0 : 1 );
@@ -858,7 +855,7 @@ print "\$succeeded = $succeeded, \$num_cases = $num_cases, \$failures = $failure
         $feedbackGenerator->print( "== Hints ==<br>\n " . $hintMessages );
     }
 
-    # FIXME: Do we hide details if all tests pass? 
+    # FIXME: Do we hide details if all tests pass?
     # If all is well, why report? On the other hand, students may be happy
     # to see details of passing tests, even if there are few details.
     # Currently choosing not to report if all is well.
@@ -871,7 +868,7 @@ print "\$succeeded = $succeeded, \$num_cases = $num_cases, \$failures = $failure
     $feedbackGenerator->endFeedbackSection;
 
     # Close down this report
-    $feedbackGenerator->close; 
+    $feedbackGenerator->close;
     $reportCount++;
     $cfg->setProperty( "report${reportCount}.file",     $resultReportRelative );
     $cfg->setProperty( "report${reportCount}.mimeType", "text/html"       );
@@ -899,11 +896,11 @@ sub explain_results
     my $totalScore              = shift;
     my $instructorCasesPercent  = shift;
     my $maxCorrectnessScore     = shift;
-    
+
     $totalScore = int( $totalScore * 10 + 0.5 ) / 10;
     $instructorCasesPercent = int( $instructorCasesPercent * 10 + 0.5 ) / 10;
     my $possible = int( $maxCorrectnessScore * 10 + 0.5 ) / 10;
-    my $feedbackGenerator = 
+    my $feedbackGenerator =
        new Web_CAT::FeedbackGenerator( $explain_rpt );
     $feedbackGenerator->startFeedbackSection(
         "Interpreting Your Correctness/Testing Score "
@@ -919,7 +916,7 @@ sub explain_results
     . "<td class=\"n\">$instructorCasesPercent%</td></tr>\n";
     $feedbackStr2 .= " * $instructorCasesPercent%";
 
-    $feedbackStr2 .= 
+    $feedbackStr2 .=
         " * $maxCorrectnessScore points possible =\n"
 	. "$totalScore</td></tr></table>\n"
 	. "<p>Full-precision (unrounded) percentages are used to calculate "
@@ -927,7 +924,7 @@ sub explain_results
     $feedbackGenerator->print( $feedbackStr  );
     $feedbackGenerator->print( $feedbackStr2 );
     $feedbackGenerator->endFeedbackSection;
-    $feedbackGenerator->close; 
+    $feedbackGenerator->close;
     $reportCount++;
     $cfg->setProperty( "report${reportCount}.file",     $explain_rpt_relative );
     $cfg->setProperty( "report${reportCount}.mimeType", "text/html"       );
@@ -950,7 +947,7 @@ sub explain_results
 #    $resultReport  absolute place to put the HTML report
 #    $resultReportRelative  relative name to output the HTML report
 #    $show_details  whether or not to show details -- Equal to $debug?
-#                   maybe how much detail to show in report. 
+#                   maybe how much detail to show in report.
 #                   currently not using it, but could easily enough.
 
 my $score = 0.0;
@@ -959,8 +956,8 @@ $instr_eval[0] = 0.0;
 
 # To run the instructor tests, need to meet one of the following conditions:
 # (1) Only doing instructor tests ($doStudentTests == false), OR
-# (2) Can proceed and 
-#    (a) not requiring that all students tests must pass, or 
+# (2) Can proceed and
+#    (a) not requiring that all students tests must pass, or
 #    (b) they did pass.
 # Run if student results not required, or if required but good enough.
 if ( $can_proceed )
@@ -971,8 +968,8 @@ if ( $can_proceed )
 			      "Results From Running Your Instructor's Tests",
 			      "",
 			      $instr_output,
-			      $instr_rpt, 
-			      $instr_rpt_relative, 
+			      $instr_rpt,
+			      $instr_rpt_relative,
 			      1 );
     if ( !$timeout_occurred )
     {
